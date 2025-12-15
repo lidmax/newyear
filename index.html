@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<title>🎄 Угадай новогоднюю мелодию</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<style>
+body{
+  margin:0;
+  font-family:"Comic Sans MS","Arial",sans-serif;
+  background:linear-gradient(180deg,#bfe9ff,#ffffff);
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  overflow:hidden;
+}
+
+/* ❄️ СНЕЖИНКИ */
+.snowflake{
+  position:fixed;
+  top:-10px;
+  color:#fff;
+  font-size:18px;
+  user-select:none;
+  pointer-events:none;
+  animation:fall linear infinite;
+}
+@keyframes fall{
+  to{transform:translateY(110vh);}
+}
+
+.card{
+  background:white;
+  border-radius:30px;
+  box-shadow:0 14px 35px rgba(0,0,0,0.2);
+  padding:24px;
+  max-width:520px;
+  width:100%;
+  text-align:center;
+  position:relative;
+  animation:fadeIn .6s ease;
+}
+@keyframes fadeIn{
+  from{opacity:0;transform:scale(.95)}
+  to{opacity:1;transform:scale(1)}
+}
+
+h1{margin:0;font-size:26px}
+.counter{font-size:15px;color:#555;margin-top:4px}
+
+.emojis{
+  font-size:52px;
+  margin:18px 0;
+  animation:bounce 1.6s infinite;
+}
+@keyframes bounce{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-10px)}
+}
+
+audio{width:100%;margin:12px 0}
+
+button{
+  display:block;
+  width:100%;
+  padding:16px;
+  margin:8px 0;
+  font-size:20px;
+  border-radius:20px;
+  border:none;
+  cursor:pointer;
+  background:#3b82f6;
+  color:white;
+  -webkit-appearance:none;
+  transition:transform .1s,background .2s,color .2s;
+}
+button:hover{background:#2563eb}
+button:active{transform:scale(.95)}
+
+.outline{
+  background:white;
+  color:#2563eb;
+  border:2px solid #2563eb;
+}
+.outline:hover{
+  background:#2563eb;
+  color:white;
+}
+
+.nav{display:flex;gap:10px;margin-top:8px}
+
+.result{font-size:22px;margin:10px 0}
+.correct{color:#16a34a;animation:pop .4s}
+.wrong{color:#dc2626;animation:shake .4s}
+@keyframes pop{from{transform:scale(.8)}to{transform:scale(1)}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+
+.score{font-size:15px;color:#555;margin-top:6px}
+
+.history{
+  margin-top:14px;
+  background:#f0f9ff;
+  border-radius:16px;
+  padding:12px;
+  font-size:14px;
+  text-align:left;
+  max-height:130px;
+  overflow-y:auto;
+}
+.history-title{font-weight:bold;margin-bottom:6px}
+
+.end{
+  display:none;
+  font-size:26px;
+}
+.firework{
+  font-size:40px;
+  animation:boom 1.2s infinite;
+}
+@keyframes boom{
+  0%{transform:scale(.5);opacity:.4}
+  50%{transform:scale(1.2);opacity:1}
+  100%{transform:scale(.5);opacity:.4}
+}
+</style>
+</head>
+<body>
+
+<div class="card" id="card">
+  <h1>🎵 Угадай новогоднюю мелодию</h1>
+  <div class="counter" id="counter"></div>
+
+  <div id="game">
+    <div id="emojis" class="emojis"></div>
+    <audio id="audio" controls></audio>
+    <div id="options"></div>
+    <div id="result" class="result"></div>
+
+    <div class="nav">
+      <button id="prevBtn" class="outline">⬅ Назад</button>
+      <button id="nextBtn" class="outline">Вперёд ➡</button>
+    </div>
+
+    <div id="score" class="score"></div>
+
+    <div class="history">
+      <div class="history-title">🎄 Угаданные песни</div>
+      <div id="historyList">Пока нет</div>
+    </div>
+  </div>
+
+  <div id="end" class="end">
+    🎆 С Новым годом! 🎆<br><br>
+    Пусть новый год принесёт радость,<br>
+    улыбки и чудеса! 🎄✨<br><br>
+    <div class="firework">🎇🎆🎇</div>
+  </div>
+</div>
+
+<script>
+/* ❄️ СНЕЖИНКИ */
+for(let i=0;i<30;i++){
+ const s=document.createElement('div');
+ s.className='snowflake';
+ s.textContent='❄️';
+ s.style.left=Math.random()*100+'vw';
+ s.style.animationDuration=5+Math.random()*5+'s';
+ s.style.fontSize=12+Math.random()*18+'px';
+ document.body.appendChild(s);
+}
+
+const songs=[
+ {e:"🎄❄️👶🌲✨",t:"В лесу родилась ёлочка",a:"elka.mp3"},
+ {e:"❄️🐴🐴🐴🎵",t:"Три белых коня",a:"three_horses.mp3"},
+ {e:"🎅👧🎶❄️✨",t:"Расскажи, Снегурочка",a:"snegurochka.mp3"},
+ {e:"⏰🎄✨🎶❄️",t:"Пять минут",a:"five_minutes.mp3"},
+ {e:"❄️🌬️🎶🌨️✨",t:"Звенит январская вьюга",a:"vuga.mp3"},
+ {e:"🎄🎁😊🎶✨",t:"Новогодняя",a:"newyear.mp3"},
+ {e:"❄️👧🎄🧣✨",t:"Маленькой ёлочке холодно зимой",a:"small_elka.mp3"},
+ {e:"❄️🚫☀️🎶🎄",t:"Кабы не было зимы",a:"no_winter.mp3"},
+ {e:"🎄❄️💃🕺🎶",t:"Снег кружится",a:"sneg_kruzhitsya.mp3"},
+ {e:"❄️🌨️🧣🎶🌲",t:"Зима",a:"zima.mp3"},
+ {e:"❄️🎅🌬️🎶✨",t:"Вдоль по улице метелица метёт",a:"metelica.mp3"},
+ {e:"❄️✨❄️🎶💫",t:"Снежинка",a:"snezhinka.mp3"},
+ {e:"🎄👦👧🎁🎶",t:"Что такое Новый год",a:"what_new_year.mp3"},
+ {e:"❄️🎁🏃🎶✨",t:"Новый год к нам мчится",a:"mchitsya.mp3"},
+ {e:"🎵😊👦👧🎄",t:"Если весело живётся",a:"veselo.mp3"},
+ {e:"❄️🌲❄️🎶✨",t:"Зимушка-зима",a:"zimushka.mp3"},
+ {e:"🎄🌟🎄🎶✨",t:"Ёлочка-ёлка",a:"elochka_elka.mp3"},
+ {e:"❄️🌨️🎶🚶",t:"Снег идёт",a:"sneg_idet.mp3"},
+ {e:"🎄🎶❄️✨🎁",t:"Новогодний хоровод",a:"horovod.mp3"},
+ {e:"🎄❄️🎶✨😊",t:"Зима пришла",a:"zima_prishla.mp3"}
+];
+
+let i=0;let guessed=new Set();
+
+const emojis=document.getElementById('emojis');
+const audio=document.getElementById('audio');
+const options=document.getElementById('options');
+const result=document.getElementById('result');
+const score=document.getElementById('score');
+const history=document.getElementById('historyList');
+const counter=document.getElementById('counter');
+const game=document.getElementById('game');
+const end=document.getElementById('end');
+
+function shuffle(a){return a.sort(()=>Math.random()-0.5)}
+
+function load(){
+ if(i>=songs.length){game.style.display='none';end.style.display='block';return}
+ const s=songs[i];
+ emojis.textContent=s.e;
+ audio.src=s.a;
+ result.textContent='';
+ options.innerHTML='';
+ counter.textContent=`Песня ${i+1} из ${songs.length}`;
+
+ const opts=shuffle([
+  s.t,
+  ...shuffle(songs.filter(x=>x.t!==s.t)).slice(0,2).map(x=>x.t)
+ ]);
+
+ opts.forEach(o=>{
+  const b=document.createElement('button');
+  b.textContent=o;
+  b.onclick=()=>check(o);
+  options.appendChild(b);
+ });
+ update();
+}
+
+function check(o){
+ const s=songs[i];
+ if(o===s.t){
+  result.textContent='🎉 Правильно!';
+  result.className='result correct';
+  guessed.add(s.t);
+ }else{
+  result.textContent='❌ Попробуй ещё';
+  result.className='result wrong';
+ }
+ update();
+}
+
+function update(){
+ score.textContent=`Угадано: ${guessed.size} из ${songs.length}`;
+ history.innerHTML=guessed.size?Array.from(guessed).map(x=>'✅ '+x).join('<br>'):'Пока нет';
+}
+
+prevBtn.onclick=()=>{if(i>0){i--;load()}};
+nextBtn.onclick=()=>{i++;load()};
+
+load();
+</script>
+</body>
+</html>
