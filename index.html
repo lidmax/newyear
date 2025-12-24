@@ -211,7 +211,7 @@ function load(){
  if(i>=songs.length){game.style.display='none';end.style.display='block';return}
  const s=songs[i];
  emojis.textContent=s.e;
- audio.src=s.a;
+ audio.src='songs/'+s.a;
  result.textContent='';
  options.innerHTML='';
  counter.textContent=`Песня ${i+1} из ${songs.length}`;
